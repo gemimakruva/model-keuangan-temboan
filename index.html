@@ -1,0 +1,920 @@
+<title>Model Keuangan Temboan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --bg: #F5F7FA; --surface: #FFFFFF; --surface-alt: #EBF0F5;
+  --fg: #1A2332; --fg-mid: #4A5568; --fg-muted: #8896A6;
+  --primary: #1B4F72; --primary-soft: #2E86C1;
+  --accent: #2C6FA0; --accent-soft: #5DADE2;
+  --border: #D5DDE5;
+  --ok: #1E8449; --ok-bg: #E8F6EF;
+  --warn: #D4820A; --warn-bg: #FEF5E7;
+  --bad: #B03A2E; --bad-bg: #FDEDEC;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1923; --surface: #1A2836; --surface-alt: #243447;
+    --fg: #E2E8F0; --fg-mid: #A0AEC0; --fg-muted: #607080;
+    --primary: #5DADE2; --primary-soft: #85C1E9;
+    --accent: #3498DB; --accent-soft: #5DADE2;
+    --border: #2D3E50;
+    --ok: #58D68D; --ok-bg: #1A2E25;
+    --warn: #F0B27A; --warn-bg: #2E2A1A;
+    --bad: #EC7063; --bad-bg: #2E1C1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1923; --surface: #1A2836; --surface-alt: #243447;
+  --fg: #E2E8F0; --fg-mid: #A0AEC0; --fg-muted: #607080;
+  --primary: #5DADE2; --primary-soft: #85C1E9;
+  --accent: #3498DB; --accent-soft: #5DADE2;
+  --border: #2D3E50;
+  --ok: #58D68D; --ok-bg: #1A2E25;
+  --warn: #F0B27A; --warn-bg: #2E2A1A;
+  --bad: #EC7063; --bad-bg: #2E1C1C;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  max-width: 1040px; margin: 0 auto;
+  padding-inline: 20px; padding-block: 24px;
+  line-height: 1.55;
+}
+h1, h2, h3 { font-weight: 700; text-wrap: balance; }
+h1 { font-size: 1.75rem; color: var(--primary); margin: 0 0 2px; }
+.sub { color: var(--fg-muted); font-size: 0.8125rem; margin: 0 0 16px; }
+h2 { font-size: 1.1rem; color: var(--primary); margin: 32px 0 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+
+.scenarios-top { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 28px; }
+.sc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.sc.custom { border-style: dashed; border-color: var(--accent-soft); }
+.sc .sname { font-size: 0.7rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; font-weight: 600; }
+.sc .price { font-size: 0.8rem; color: var(--fg-mid); margin-bottom: 8px; }
+.sc .price strong { color: var(--primary-soft); font-size: 0.9rem; }
+.sc .big { font-size: 1.6rem; font-weight: 800; line-height: 1.15; }
+.sc .big.ok { color: var(--ok); }
+.sc .big.warn { color: var(--warn); }
+.sc .big.bad { color: var(--bad); }
+.sc .row { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--fg-muted); margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+.sc .row span:last-child { font-weight: 600; color: var(--fg-mid); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px 24px; }
+.ctrl { display: flex; flex-direction: column; gap: 4px; }
+.ctrl label {
+  font-size: 0.75rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em;
+  display: flex; justify-content: space-between; align-items: baseline; font-weight: 600;
+}
+.ctrl label .live { font-size: 0.875rem; font-weight: 700; color: var(--primary-soft); text-transform: none; letter-spacing: 0; }
+.ctrl input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 5px;
+  border-radius: 3px; background: var(--surface-alt); outline: none; cursor: pointer;
+}
+.ctrl input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--primary); cursor: pointer; border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.ctrl input[type=range]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--primary); cursor: pointer; border: 2px solid var(--surface);
+}
+
+.tax-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.tax-title { font-size: 0.75rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; font-weight: 700; }
+.tax-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 4px 24px; }
+.chk { display: flex; align-items: flex-start; gap: 10px; font-size: 0.8125rem; color: var(--fg); cursor: pointer; padding: 7px 0; user-select: none; }
+.chk input[type=checkbox] {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px; min-width: 18px;
+  border: 2px solid var(--border); border-radius: 4px; background: var(--bg); cursor: pointer; margin-top: 1px;
+  display: grid; place-content: center; transition: all .15s;
+}
+.chk input[type=checkbox]:checked { background: var(--primary); border-color: var(--primary); }
+.chk input[type=checkbox]:checked::after { content: '\2713'; color: #fff; font-size: 12px; font-weight: 700; }
+.chk-info { font-size: 0.68rem; color: var(--fg-muted); display: block; margin-top: 1px; }
+
+.tbl-wrap { overflow-x: auto; margin: 8px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); font-weight: 700; background: var(--surface-alt); }
+td { color: var(--fg); }
+td.num, th.num { text-align: right; }
+td.num { font-weight: 500; }
+tr.sub td { font-weight: 700; border-top: 2px solid var(--border); background: var(--surface-alt); }
+tr.total td { font-weight: 700; border-top: 2px solid var(--primary); color: var(--primary); font-size: 0.875rem; }
+tr.tax-row td { color: var(--fg-mid); font-style: italic; }
+td.muted { color: var(--fg-muted); font-size: 0.72rem; }
+td.ok { color: var(--ok); font-weight: 600; }
+td.warn { color: var(--warn); font-weight: 600; }
+td.bad { color: var(--bad); font-weight: 600; }
+th.hl { color: var(--primary); }
+
+.matrix { font-size: 0.75rem; }
+.matrix th { font-size: 0.65rem; padding: 6px 8px; }
+.matrix td { padding: 6px 8px; text-align: center; font-weight: 600; }
+.matrix td.g { background: var(--ok-bg); color: var(--ok); border-radius: 3px; }
+.matrix td.y { background: var(--warn-bg); color: var(--warn); border-radius: 3px; }
+.matrix td.r { background: var(--bad-bg); color: var(--bad); border-radius: 3px; }
+
+.badge { display: inline-block; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 3px; vertical-align: middle; margin-left: 8px; }
+.badge.new { background: var(--primary); color: #fff; }
+.badge.src { background: var(--surface-alt); color: var(--fg-muted); }
+
+.kpi-row { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.kpi-row > div { min-width: 0; }
+.kpi-row > div > span { font-size: .68rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.kpi-row > div > strong { display: block; font-size: 1.05rem; margin-top: 2px; }
+
+.proj-info { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 8px; }
+.proj-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.proj-summary .ps { background: var(--surface-alt); border-radius: 6px; padding: 12px 14px; text-align: center; border: 1px solid var(--border); }
+.proj-summary .ps .psl { font-size: .68rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.proj-summary .ps .psv { font-size: 1.1rem; font-weight: 800; margin-top: 2px; }
+.proj-summary .ps .pss { font-size: .68rem; color: var(--fg-muted); margin-top: 2px; }
+
+.edit-num {
+  background: transparent; border: 1px dashed transparent; border-radius: 3px;
+  font-family: inherit; font-size: inherit; font-weight: 500; color: var(--fg);
+  text-align: right; width: 64px; padding: 2px 4px; transition: all .15s;
+  -moz-appearance: textfield;
+}
+.edit-num::-webkit-inner-spin-button,
+.edit-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.edit-num:hover { border-color: var(--border); background: var(--surface-alt); }
+.edit-num:focus { border-color: var(--primary-soft); outline: none; background: var(--surface-alt); }
+.edit-unit { font-size: 0.72rem; color: var(--fg-muted); margin-left: 1px; }
+.reset-btn {
+  background: var(--surface-alt); border: 1px solid var(--border); border-radius: 4px;
+  font-size: 0.72rem; color: var(--fg-mid); padding: 3px 10px; cursor: pointer;
+  transition: all .15s; margin-left: 8px; vertical-align: middle;
+}
+.reset-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.chart-card h3 { font-size: .85rem; color: var(--primary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: .03em; }
+.chart-card svg { width: 100%; height: auto; display: block; }
+.chart-desc { font-size: .72rem; color: var(--fg-muted); margin-top: 8px; line-height: 1.5; }
+
+.notes { font-size: 0.72rem; color: var(--fg-muted); line-height: 1.6; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.notes strong { color: var(--fg-mid); }
+
+@media (max-width: 900px) {
+  .scenarios-top { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 700px) {
+  .scenarios-top { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 1.5rem; }
+  .sc .big { font-size: 1.3rem; }
+  .proj-summary { grid-template-columns: 1fr 1fr; }
+  .chart-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .scenarios-top { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sc { padding: 10px 12px; }
+}
+</style>
+
+<h1>Model Keuangan Temboan 80 ha</h1>
+<p class="sub">5 skenario harga akuisisi lahan (4 fixed + 1 custom) — adaptasi DOC-007 (500 ha) + data DOC-008 (Temboan)<span class="badge new">Mengisi GAP-001</span></p>
+
+<div style="margin-bottom:14px">
+  <div class="card" style="padding:14px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+    <div class="ctrl" style="flex:1;min-width:220px;max-width:360px">
+      <label>Harga Lahan Custom (Rp/m²) <span class="live" id="v-custom-ht">22.000</span></label>
+      <input type="range" id="s-custom-ht" min="5000" max="60000" step="1000" value="22000">
+    </div>
+    <span style="font-size:.75rem;color:var(--fg-muted)" id="custom-total">Total lahan: Rp 17,6 M (80 ha)</span>
+  </div>
+</div>
+
+<div class="scenarios-top" id="top-cards"></div>
+
+<h2>Parameter Operasional<span class="badge src">Adjustable</span></h2>
+<div class="card">
+  <div class="controls">
+    <div class="ctrl">
+      <label>Jumlah Pohon <span class="live" id="v-pohon">8.500</span></label>
+      <input type="range" id="s-pohon" min="7000" max="10000" step="100" value="8500">
+      <span class="chk-info">Total pohon kelapa di 80 ha — mempengaruhi produksi, biaya panen, dan logistik</span>
+    </div>
+    <div class="ctrl">
+      <label>Produktivitas (butir/pohon/th) <span class="live" id="v-prod">160</span></label>
+      <input type="range" id="s-prod" min="80" max="240" step="10" value="160">
+      <span class="chk-info">Hasil panen per pohon per tahun — driver utama revenue (belum divalidasi uji petik)</span>
+    </div>
+    <div class="ctrl">
+      <label>Harga Jual per Butir (Rp) <span class="live" id="v-harga">2.450</span></label>
+      <input type="range" id="s-harga" min="1800" max="3500" step="50" value="2450">
+      <span class="chk-info">Harga jual kelapa butiran kupas jambul — median pasar Rp 2.450 (DOC-007)</span>
+    </div>
+    <div class="ctrl">
+      <label>Modal Kerja (bulan OPEX) <span class="live" id="v-mk">6</span></label>
+      <input type="range" id="s-mk" min="1" max="24" step="1" value="6">
+      <span class="chk-info">Cadangan kas operasional awal — masuk CAPEX, dihitung dari total OPEX bulanan</span>
+    </div>
+  </div>
+  <div class="tax-section">
+    <div class="tax-title">Komponen Pajak & Nilai Sisa <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsional)</span></div>
+    <div class="tax-grid">
+      <label class="chk">
+        <input type="checkbox" id="t-bphtb">
+        <span>BPHTB — 5% nilai tanah<span class="chk-info">Bea Perolehan Hak atas Tanah · one-time, masuk CAPEX</span></span>
+      </label>
+      <label class="chk">
+        <input type="checkbox" id="t-pbb">
+        <span>PBB Perkebunan<span class="chk-info">Pajak Bumi & Bangunan · ~Rp 8 jt/th (NJOP est. Rp 5k/m²)</span></span>
+      </label>
+      <label class="chk">
+        <input type="checkbox" id="t-pph">
+        <span>PPh Badan — 22%<span class="chk-info">Pajak Penghasilan Badan · dari laba setelah depresiasi aset (Pasal 17 UU PPh)</span></span>
+      </label>
+      <label class="chk">
+        <input type="checkbox" id="t-pp55">
+        <span>PP 55/2022 — PPh Final 0,5%<span class="chk-info">PPh Final 0,5% dari omzet untuk PT baru (max 4 tahun, omzet ≤ Rp 4,8 M/th). Berlaku jika PPh Badan dicentang.</span></span>
+      </label>
+      <label class="chk">
+        <input type="checkbox" id="t-31e">
+        <span>Pasal 31E — Diskon 50% Tarif<span class="chk-info">Tarif PPh efektif 11% untuk bagian omzet ≤ Rp 4,8 M/th (proporsional). Berlaku setelah PP 55 habis atau jika PP 55 tidak dicentang.</span></span>
+      </label>
+      <label class="chk">
+        <input type="checkbox" id="t-rv">
+        <span>Nilai Sisa Lahan<span class="chk-info">Menambahkan harga beli lahan sebagai cashflow positif di akhir periode proyeksi (lahan tidak terdepresiasi)</span></span>
+      </label>
+    </div>
+  </div>
+  <div class="tax-section">
+    <div class="tax-title">Asumsi Proyeksi</div>
+    <div class="controls">
+      <div class="ctrl">
+        <label>Discount Rate (%) <span class="live" id="v-disc">10</span></label>
+        <input type="range" id="s-disc" min="5" max="20" step="0.5" value="10">
+        <span class="chk-info">Nilai waktu uang — makin tinggi, makin berat diskon cashflow masa depan → NPV turun</span>
+      </div>
+      <div class="ctrl">
+        <label>Inflasi Revenue (%/th) <span class="live" id="v-infl-rev">5</span></label>
+        <input type="range" id="s-infl-rev" min="0" max="10" step="0.5" value="5">
+        <span class="chk-info">Kenaikan harga jual kelapa per tahun — dipengaruhi harga komoditas</span>
+      </div>
+      <div class="ctrl">
+        <label>Inflasi Biaya (%/th) <span class="live" id="v-infl-cost">5</span></label>
+        <input type="range" id="s-infl-cost" min="0" max="10" step="0.5" value="5">
+        <span class="chk-info">Kenaikan biaya operasional (SDM, pupuk, logistik) per tahun</span>
+      </div>
+      <div class="ctrl">
+        <label>Periode Proyeksi (tahun) <span class="live" id="v-period">15</span></label>
+        <input type="range" id="s-period" min="5" max="25" step="1" value="15">
+        <span class="chk-info">Horizon analisis NPV/IRR — makin panjang, makin banyak cashflow dihitung</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>Perbandingan CAPEX — 5 Skenario Harga Lahan</h2>
+<p style="font-size:.75rem;color:var(--fg-muted);margin-bottom:8px">Angka aset dan SDM bisa diedit langsung (klik angka untuk mengubah). <button class="reset-btn" onclick="resetDefaults()">Reset semua ke default</button></p>
+<div class="card">
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Komponen</th>
+        <th class="num">Target Akuisisi<br><span style="color:var(--primary-soft)">Rp 20k/m²</span></th>
+        <th class="num hl">Target Negosiasi<br><span style="color:var(--primary-soft)">Rp 25k/m²</span></th>
+        <th class="num">Batas Maks<br><span style="color:var(--primary-soft)">Rp 30k/m²</span></th>
+        <th class="num">Penawaran<br><span style="color:var(--primary-soft)">Rp 40k/m²</span></th>
+        <th class="num">Custom<br><span style="color:var(--accent-soft)" id="c-custom-price">Rp 22k/m²</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Pembelian Lahan 80 ha</td>
+        <td class="num" id="c-lahan-0">16.000.000.000</td>
+        <td class="num" id="c-lahan-1">20.000.000.000</td>
+        <td class="num" id="c-lahan-2">24.000.000.000</td>
+        <td class="num" id="c-lahan-3">32.000.000.000</td>
+        <td class="num" id="c-lahan-4">—</td>
+      </tr>
+      <tr>
+        <td>Gedung Operasional</td>
+        <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-gedung" type="number" value="200" min="0" step="10"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">kantor lapangan + gudang</span></td>
+      </tr>
+      <tr>
+        <td>Motor Operasional (1)</td>
+        <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-motor" type="number" value="30" min="0" step="5"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">supervisi kebun harian</span></td>
+      </tr>
+      <tr>
+        <td>Peralatan Kebun</td>
+        <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-peralatan" type="number" value="120" min="0" step="10"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">cangkul, parang, sprayer, selang</span></td>
+      </tr>
+      <tr>
+        <td>Mesin (pompa, genset)</td>
+        <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-mesin" type="number" value="160" min="0" step="10"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">irigasi + backup listrik</span></td>
+      </tr>
+      <tr>
+        <td>Pickup Pengangkut</td>
+        <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-pickup" type="number" value="300" min="0" step="10"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">angkut hasil panen ke pengepul</span></td>
+      </tr>
+      <tr class="sub">
+        <td>Subtotal Non-Lahan</td>
+        <td class="num" colspan="5" style="text-align:center" id="c-cnl">810.000.000 (sama semua skenario)</td>
+      </tr>
+      <tr>
+        <td id="c-mk-label">Modal Kerja (6 bln OPEX)</td>
+        <td class="num" id="c-mk-0">—</td><td class="num" id="c-mk-1">—</td><td class="num" id="c-mk-2">—</td><td class="num" id="c-mk-3">—</td><td class="num" id="c-mk-4">—</td>
+      </tr>
+      <tr id="tr-bphtb" class="tax-row" hidden>
+        <td>BPHTB (5% nilai tanah)</td>
+        <td class="num" id="c-bphtb-0">—</td><td class="num" id="c-bphtb-1">—</td><td class="num" id="c-bphtb-2">—</td><td class="num" id="c-bphtb-3">—</td><td class="num" id="c-bphtb-4">—</td>
+      </tr>
+      <tr class="total">
+        <td>TOTAL CAPEX</td>
+        <td class="num" id="c-total-0">—</td><td class="num" id="c-total-1">—</td><td class="num" id="c-total-2">—</td><td class="num" id="c-total-3">—</td><td class="num" id="c-total-4">—</td>
+      </tr>
+      <tr><td>Payback Period</td>
+        <td class="num" id="c-pb-0">—</td><td class="num" id="c-pb-1">—</td><td class="num" id="c-pb-2">—</td><td class="num" id="c-pb-3">—</td><td class="num" id="c-pb-4">—</td>
+      </tr>
+      <tr><td>ROI Tahunan</td>
+        <td class="num" id="c-roi-0">—</td><td class="num" id="c-roi-1">—</td><td class="num" id="c-roi-2">—</td><td class="num" id="c-roi-3">—</td><td class="num" id="c-roi-4">—</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<h2>OPEX — Biaya Operasional Tahunan</h2>
+<p style="font-size:.8rem;color:var(--fg-muted);margin-bottom:8px">Sama untuk semua skenario harga lahan — OPEX tidak bergantung pada harga beli tanah.</p>
+<div class="card">
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Komponen</th><th class="num">Rp / Tahun</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td colspan="3" style="font-weight:600;color:var(--fg-mid);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding-top:10px">SDM Tetap — 4 Orang</td></tr>
+      <tr><td>Manajer Kebun (1)</td><td class="num"><input class="edit-num" id="e-manajer" type="number" value="96" min="0" step="6"><span class="edit-unit">jt</span></td><td class="muted">Default: Rp 8 jt/bln × 12</td></tr>
+      <tr><td>Kasir/Akuntan (1)</td><td class="num"><input class="edit-num" id="e-kasir" type="number" value="48" min="0" step="6"><span class="edit-unit">jt</span></td><td class="muted">Default: Rp 4 jt/bln × 12</td></tr>
+      <tr><td>Perawat Kebun (2)</td><td class="num"><input class="edit-num" id="e-perawat" type="number" value="96" min="0" step="6"><span class="edit-unit">jt</span></td><td class="muted">Default: Rp 4 jt/bln × 2 × 12</td></tr>
+      <tr class="sub"><td>Subtotal SDM Tetap</td><td class="num" id="o-sdm-total">240.000.000</td><td></td></tr>
+      <tr><td colspan="3" style="font-weight:600;color:var(--fg-mid);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding-top:10px">Biaya Variabel</td></tr>
+      <tr><td>Pemanen Harian Lepas</td><td class="num" id="o-panen">—</td><td class="muted" id="o-panen-n">—</td></tr>
+      <tr><td>Pupuk & Perawatan</td><td class="num"><input class="edit-num" id="e-pupuk" type="number" value="120" min="0" step="10"><span class="edit-unit">jt</span></td><td class="muted">Default: Rp 1,5 jt/ha × 80</td></tr>
+      <tr><td>Logistik (transport)</td><td class="num" id="o-logistik">—</td><td class="muted">Rp 200/butir</td></tr>
+      <tr><td>Gudang Transit</td><td class="num"><input class="edit-num" id="e-gudang" type="number" value="30" min="0" step="5"><span class="edit-unit">jt</span></td><td class="muted">Default: sewa/operasional</td></tr>
+      <tr><td>Overhead & Admin</td><td class="num"><input class="edit-num" id="e-overhead" type="number" value="24" min="0" step="2"><span class="edit-unit">jt</span></td><td class="muted">Default: Rp 300k/ha × 80</td></tr>
+      <tr class="sub"><td>Subtotal sebelum risiko</td><td class="num" id="o-sub">—</td><td></td></tr>
+      <tr><td>Cadangan Risiko (15% variabel)</td><td class="num" id="o-risk">—</td><td class="muted">15% × biaya variabel (panen + pupuk + logistik)</td></tr>
+      <tr id="tr-pbb" class="tax-row" hidden>
+        <td>PBB Perkebunan</td><td class="num" id="o-pbb">—</td><td class="muted">0,5% × 40% × NJOP (est. Rp 5k/m² × 80 ha)</td>
+      </tr>
+      <tr class="total"><td>TOTAL OPEX / TAHUN</td><td class="num" id="o-total">—</td><td></td></tr>
+      <tr><td>OPEX / Bulan</td><td class="num" id="o-monthly">—</td><td class="muted">Total OPEX ÷ 12</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<h2>Revenue, Cashflow & Investasi — 5 Skenario</h2>
+<div class="card">
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Metrik</th>
+        <th class="num">Target Akuisisi<br>Rp 20k/m²</th>
+        <th class="num hl">Target Negosiasi<br>Rp 25k/m²</th>
+        <th class="num">Batas Maks<br>Rp 30k/m²</th>
+        <th class="num">Penawaran<br>Rp 40k/m²</th>
+        <th class="num">Custom</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Total Produksi</td><td class="num" colspan="5" style="text-align:center;color:var(--fg-muted)" id="r-prod">—</td></tr>
+      <tr><td>Pendapatan Kotor</td><td class="num" colspan="5" style="text-align:center;color:var(--fg-muted)" id="r-rev">—</td></tr>
+      <tr><td>Total OPEX</td><td class="num" colspan="5" style="text-align:center;color:var(--fg-muted)" id="r-opex">—</td></tr>
+      <tr id="tr-depr" class="tax-row" hidden>
+        <td id="r-depr-label">Depresiasi Aset (non-cash)</td>
+        <td class="num" colspan="5" style="text-align:center" id="r-depr">—</td>
+      </tr>
+      <tr id="tr-pph" class="tax-row" hidden>
+        <td id="r-pph-label">PPh Badan (22%)</td>
+        <td class="num" colspan="5" style="text-align:center" id="r-pph">—</td>
+      </tr>
+      <tr class="sub">
+        <td id="r-cf-label">Net Cashflow / Tahun</td>
+        <td class="num" colspan="5" style="text-align:center" id="r-cf">—</td>
+      </tr>
+      <tr><td>Total CAPEX</td>
+        <td class="num" id="r-capex-0">—</td><td class="num" id="r-capex-1">—</td><td class="num" id="r-capex-2">—</td><td class="num" id="r-capex-3">—</td><td class="num" id="r-capex-4">—</td>
+      </tr>
+      <tr><td>ROI Tahunan</td>
+        <td class="num" id="r-roi-0">—</td><td class="num" id="r-roi-1">—</td><td class="num" id="r-roi-2">—</td><td class="num" id="r-roi-3">—</td><td class="num" id="r-roi-4">—</td>
+      </tr>
+      <tr class="total"><td>Payback Period</td>
+        <td class="num" id="r-pb-0">—</td><td class="num" id="r-pb-1">—</td><td class="num" id="r-pb-2">—</td><td class="num" id="r-pb-3">—</td><td class="num" id="r-pb-4">—</td>
+      </tr>
+      <tr><td>Payback (tanpa lahan)</td><td class="num" colspan="5" style="text-align:center" id="r-pb-nl">—</td></tr>
+      <tr class="sub">
+        <td>NPV <span id="r-npv-label" style="font-weight:400;font-size:.72rem;color:var(--fg-muted)"></span></td>
+        <td class="num" id="r-npv-0">—</td><td class="num" id="r-npv-1">—</td><td class="num" id="r-npv-2">—</td><td class="num" id="r-npv-3">—</td><td class="num" id="r-npv-4">—</td>
+      </tr>
+      <tr class="sub">
+        <td>IRR <span style="font-weight:400;font-size:.72rem;color:var(--fg-muted)">(return tahunan efektif)</span></td>
+        <td class="num" id="r-irr-0">—</td><td class="num" id="r-irr-1">—</td><td class="num" id="r-irr-2">—</td><td class="num" id="r-irr-3">—</td><td class="num" id="r-irr-4">—</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="kpi-row">
+    <div><span>Margin / Butir</span><strong id="k-margin">—</strong><span class="chk-info">Keuntungan bersih per butir kelapa terjual</span></div>
+    <div><span>Margin / Ha</span><strong id="k-margin-ha">—</strong><span class="chk-info">Kontribusi margin per hektar (di luar SDM tetap)</span></div>
+    <div><span>BEP Lahan</span><strong id="k-bep">—</strong><span class="chk-info">Minimal luas lahan agar revenue menutup seluruh OPEX</span></div>
+    <div><span>Produksi / Ha</span><strong id="k-prod-ha">—</strong><span class="chk-info">Total butir kelapa per hektar per tahun</span></div>
+  </div>
+</div>
+
+<h2>Proyeksi Multi-Tahun</h2>
+<p class="proj-info" id="proj-info"></p>
+<p class="proj-info" style="margin-top:4px">Angka besar di bawah adalah <strong style="color:var(--fg)">NPV (Net Present Value)</strong>: jika positif, artinya total keuntungan dari kebun ini (setelah memperhitungkan bahwa uang hari ini lebih berharga dari uang di masa depan) masih lebih besar dari modal yang dikeluarkan. Jika negatif, artinya dalam periode tersebut modal belum kembali sepenuhnya.</p>
+<div class="card">
+  <div id="proj-summary" class="proj-summary"></div>
+  <div class="tbl-wrap" style="margin-top:14px"><table class="matrix" id="projection"></table></div>
+</div>
+
+<h2>Matriks Sensitivitas — Harga Lahan × Produktivitas</h2>
+<p style="font-size:.78rem;color:var(--fg-muted);margin-bottom:8px">
+  Setiap sel menunjukkan berapa tahun modal kembali (payback statis, tanpa inflasi) pada kombinasi harga lahan dan produktivitas tertentu.<br>
+  <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--ok-bg);vertical-align:middle;margin-top:4px"></span>&thinsp;&lt;10 th
+  <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--warn-bg);vertical-align:middle"></span>&thinsp;10–15 th
+  <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--bad-bg);vertical-align:middle"></span>&thinsp;&gt;15 th
+</p>
+<div class="card">
+  <div class="tbl-wrap"><table class="matrix" id="matrix"></table></div>
+</div>
+
+<h2>Visualisasi Keuangan</h2>
+<div class="chart-grid">
+  <div class="chart-card" style="grid-column:1/-1">
+    <h3>Cashflow Kumulatif — 5 Skenario</h3>
+    <div id="chart-cf"></div>
+    <p class="chart-desc">Garis menunjukkan akumulasi arus kas bersih per tahun. Titik pada garis nol = modal kembali (payback). Skenario di bawah nol berarti modal belum pulih dalam periode proyeksi.</p>
+  </div>
+  <div class="chart-card">
+    <h3>Komposisi CAPEX</h3>
+    <div id="chart-capex"></div>
+    <p class="chart-desc">Proporsi komponen investasi awal. Bar atas = total CAPEX; bar bawah = zoom ke komponen non-lahan. Skenario Target Akuisisi (Rp 20k/m²).</p>
+  </div>
+  <div class="chart-card">
+    <h3>Revenue vs OPEX per Tahun</h3>
+    <div id="chart-revopex"></div>
+    <p class="chart-desc">Perbandingan pendapatan dan biaya per tahun dengan inflasi. Selisih hijau di atas merah = margin operasional.</p>
+  </div>
+  <div class="chart-card" style="grid-column:1/-1">
+    <h3>Sensitivitas Parameter terhadap NPV</h3>
+    <div id="chart-tornado"></div>
+    <p class="chart-desc">Setiap parameter diubah ±20% dari nilai saat ini. Bar menunjukkan dampak pada NPV skenario Target Akuisisi. Parameter teratas paling berpengaruh.</p>
+  </div>
+</div>
+
+<div class="notes">
+  <strong>Sumber Data & Metodologi</strong><br>
+  • SDM diadaptasi dari DOC-007 §3: 500 ha/5 divisi → 80 ha/1 divisi. Manajemen pusat 2 orang tetap.<br>
+  • Upah panen: Rp 10.000/pohon/kunjungan (DOC-007 §5.1). Frekuensi panen = f(produktivitas).<br>
+  • Harga jual: Rp 2.100–2.800/butir kupas jambul, median Rp 2.450 (DOC-007 §5.1).<br>
+  • Kepadatan: 90 pohon/ha standar. Temboan aktual: 100–113 pohon/ha (DOC-008).<br>
+  • Produktivitas: 40–50 butir/pohon/panen × 3–4 panen/th = 120–200 butir/pohon/th. <strong>Belum divalidasi uji petik.</strong><br>
+  • 4 skenario harga lahan fixed + 1 skenario custom dari DOC-008 Analisis Harga Wajar Akuisisi.<br>
+  • <strong>Cadangan risiko 15%</strong> hanya atas biaya variabel. SDM tetap tidak di-buffer.<br>
+  • <strong>Depresiasi aset</strong> straight-line: gedung 20 th, motor & peralatan 5 th, mesin & pickup 8 th.<br>
+  • <strong>NPV / IRR</strong> dihitung dari proyeksi multi-tahun. Inflasi revenue dan biaya diatur terpisah.<br>
+  • <strong>Nilai sisa lahan:</strong> jika dicentang, harga beli lahan ditambahkan sebagai cashflow positif di tahun terakhir.<br>
+  • <strong>PP 55/2022:</strong> PPh Final 0,5% dari omzet bruto. Max 4 tahun untuk PT baru, omzet ≤ Rp 4,8 M/th.<br>
+  • <strong>Pasal 31E UU PPh:</strong> Diskon 50% tarif PPh untuk bagian PKP sebanding omzet ≤ Rp 4,8 M/th. Rumus: PPh = 11% × (4,8M/omzet × PKP) + 22% × sisanya.<br>
+  • <strong>Pajak lainnya:</strong> BPHTB 5% atas (NPOP − Rp 80 jt NPOPTKP). PBB: 0,5% × NJKP; NJOP est. Rp 5.000/m².<br>
+  • <strong>Belum termasuk:</strong> revenue hilirisasi (sabut/VCO/MCT), potensi wisata pantai, apresiasi nilai lahan.<br>
+  <br>
+  <strong>Sumber:</strong> DOC-007 (Laporan Strategis, Apr 2026) · DOC-008 (Prioritas Lokasi, Jul 2026) · DOC-009 (Industri Kelapa Sulut)
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const rpS = n => {
+  if (!isFinite(n)) return '—';
+  const a = Math.abs(n);
+  if (a >= 1e12) return (n<0?'-':'')+'Rp '+(a/1e12).toFixed(1)+' T';
+  if (a >= 1e9) return (n<0?'-':'')+'Rp '+(a/1e9).toFixed(1)+' M';
+  if (a >= 1e6) return (n<0?'-':'')+'Rp '+(a/1e6).toFixed(0)+' jt';
+  return (n<0?'-':'')+'Rp '+a.toLocaleString('id-ID');
+};
+const rpF = n => !isFinite(n)?'—':Math.round(n).toLocaleString('id-ID');
+const num = n => Math.round(n).toLocaleString('id-ID');
+
+const LUAS=80, M2=LUAS*10000;
+let CNL=810e6, SDM=240e6, PUPUK=120e6, GUD=30e6, OVH=24e6;
+const NPOPTKP=80e6;
+const PBB_ANNUAL=Math.round(0.005*0.4*5000*M2);
+
+let DEPR_ASSETS = [[200e6,20],[30e6,5],[120e6,5],[160e6,8],[300e6,8]];
+function deprYear(y) {
+  if (y < 1 || y > 20) return 0;
+  return DEPR_ASSETS.reduce((s, [v, l]) => s + (y <= l ? v / l : 0), 0);
+}
+
+const SCENARIOS = [
+  {name:'Target Akuisisi', ht:20000, total:'Rp 16 M'},
+  {name:'Target Negosiasi', ht:25000, total:'Rp 20 M'},
+  {name:'Batas Maksimum', ht:30000, total:'Rp 24 M'},
+  {name:'Penawaran Pemilik', ht:40000, total:'Rp 32 M'},
+  {name:'Custom', ht:22000, total:'—'},
+];
+const NS = SCENARIOS.length;
+
+function calcPPhYear(revY, opexY, y, tax) {
+  if (!tax.pph) return 0;
+  if (tax.pp55 && y <= 4 && revY <= 4.8e9) return Math.round(revY * 0.005);
+  const deprY = deprYear(y);
+  const taxableY = revY - opexY - deprY;
+  if (taxableY <= 0) return 0;
+  if (tax.p31e) {
+    const ef = Math.min(1, 4.8e9 / revY);
+    return Math.round(taxableY * ef * 0.11 + taxableY * (1 - ef) * 0.22);
+  }
+  return Math.round(taxableY * 0.22);
+}
+
+function calc(ht, pohon, prod, hj, tax, mkBulan) {
+  const cl = ht * M2;
+  const fp = Math.max(2, 3 + (prod - 120) / 80);
+  const tp = pohon * prod;
+  const bp = pohon * fp * 10000;
+  const bl = tp * 200;
+  const varCosts = bp + PUPUK + bl;
+  const os = SDM + varCosts + GUD + OVH;
+  const cr = Math.round(varCosts * 0.15);
+  const pbb = tax.pbb ? PBB_ANNUAL : 0;
+  const ot = os + cr + pbb;
+  const mk = Math.round(ot * mkBulan / 12);
+  const bphtb = tax.bphtb ? Math.round(0.05 * Math.max(0, cl - NPOPTKP)) : 0;
+  const ct = cl + CNL + mk + bphtb;
+  const rv = tp * hj;
+  const depr = tax.pph ? deprYear(1) : 0;
+  const pph = calcPPhYear(rv, ot, 1, tax);
+  let pphMode = 'normal';
+  if (tax.pph) {
+    if (tax.pp55 && rv <= 4.8e9) pphMode = 'pp55';
+    else if (tax.p31e) pphMode = '31e';
+  }
+  let pphRate = 0.22;
+  if (pphMode === 'pp55') pphRate = 0.005;
+  else if (pphMode === '31e') { const ef = Math.min(1, 4.8e9/rv); pphRate = ef*0.11+(1-ef)*0.22; }
+  const taxable = rv - ot - depr;
+  const nc = rv - ot - pph;
+  const roi = ct > 0 ? nc / ct * 100 : 0;
+  const pb = nc > 0 ? ct / nc : Infinity;
+  const pbnl = nc > 0 ? (CNL + mk) / nc : Infinity;
+  const vph = (ot - SDM) / LUAS;
+  const rph = rv / LUAS;
+  const mph = rph - vph;
+  const bep = mph > 0 ? SDM / mph : Infinity;
+  const mpb = tp > 0 ? nc / tp : 0;
+  return { cl,ct,mk,bp,bl,os,cr,ot,tp,rv,nc,ncPre,roi,pb,pbnl,mph,mpb,bep,fp,bphtb,pbb,pph,depr,taxable,pphRate,pphMode };
+}
+
+function calcIRR(cfs) {
+  if (cfs.length < 2) return NaN;
+  let lo = -0.3, hi = 2.0;
+  for (let i = 0; i < 100; i++) {
+    const mid = (lo + hi) / 2;
+    const npv = cfs.reduce((s, cf, t) => s + cf / Math.pow(1 + mid, t), 0);
+    if (Math.abs(npv) < 1) return mid;
+    if (npv > 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function quickNPV(po, pr, h, ht, tax, mk, disc, ir, ic, per) {
+  const r = calc(ht, po, pr, h, tax, mk);
+  const cfs = [-r.ct];
+  for (let y = 1; y <= per; y++) {
+    const revY = Math.round(r.rv * Math.pow(1+ir, y-1));
+    const opexY = Math.round(r.ot * Math.pow(1+ic, y-1));
+    let ncfY = revY - opexY - calcPPhYear(revY, opexY, y, tax);
+    if (y === per && tax.rv) ncfY += r.cl;
+    cfs.push(ncfY);
+  }
+  return cfs.reduce((s, cf, t) => s + cf / Math.pow(1+disc, t), 0);
+}
+
+function colorCls(pb) { return pb < 10 ? 'ok' : pb < 15 ? 'warn' : 'bad'; }
+function pbTxt(pb) { return !isFinite(pb) ? '∞' : pb.toFixed(1) + ' th'; }
+
+const SC = ['#2E86C1','#27AE60','#E67E22','#C0392B','#8E44AD'];
+
+function renderCFChart(proj, period) {
+  const W=620,H=280,ml=70,mr=12,mt=24,mb=30,pw=W-ml-mr,ph=H-mt-mb;
+  let yMin=0,yMax=0;
+  proj.forEach(p=>{yMin=Math.min(yMin,...p.rows.map(r=>r.cum),p.cfs[0]);yMax=Math.max(yMax,...p.rows.map(r=>r.cum));});
+  const pad=(yMax-yMin)*0.08||1e9;yMin-=pad;yMax+=pad;
+  const x=v=>ml+v/period*pw, y=v=>mt+(1-(v-yMin)/(yMax-yMin))*ph;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="font-family:Inter,system-ui,sans-serif">`;
+  for(let i=0;i<=4;i++){const v=yMin+(yMax-yMin)*i/4,yy=y(v);
+    s+=`<line x1="${ml}" y1="${yy}" x2="${W-mr}" y2="${yy}" stroke="var(--border)" stroke-width=".5"/>`;
+    s+=`<text x="${ml-6}" y="${yy+3}" text-anchor="end" fill="var(--fg-muted)" font-size="8">${rpS(v)}</text>`;}
+  if(yMin<0&&yMax>0) s+=`<line x1="${ml}" y1="${y(0)}" x2="${W-mr}" y2="${y(0)}" stroke="var(--fg-mid)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  const xs=period<=10?1:period<=15?2:5;
+  for(let i=0;i<=period;i+=xs) s+=`<text x="${x(i)}" y="${H-mb+14}" text-anchor="middle" fill="var(--fg-muted)" font-size="8">${i}</text>`;
+  s+=`<text x="${ml+pw/2}" y="${H-4}" text-anchor="middle" fill="var(--fg-muted)" font-size="9">Tahun</text>`;
+  SCENARIOS.forEach((sc,si)=>{const p=proj[si];let d=`M${x(0)},${y(p.cfs[0])}`;
+    p.rows.forEach(r=>d+=` L${x(r.y)},${y(r.cum)}`);
+    s+=`<path d="${d}" fill="none" stroke="${SC[si]}" stroke-width="2" stroke-linejoin="round"/>`;
+    if(p.pbYear<Infinity&&p.pbYear<=period) s+=`<circle cx="${x(p.pbYear)}" cy="${y(0)}" r="4" fill="${SC[si]}" stroke="var(--surface)" stroke-width="1.5"/>`;
+  });
+  SCENARIOS.forEach((sc,si)=>{const lx=ml+6+si*100,ly=mt-12;
+    s+=`<rect x="${lx}" y="${ly}" width="10" height="3" rx="1.5" fill="${SC[si]}"/>`;
+    s+=`<text x="${lx+14}" y="${ly+3}" fill="var(--fg-mid)" font-size="7.5">${sc.name==='Custom'?'Custom':sc.name.split(' ').pop()}</text>`;});
+  s+='</svg>';$('chart-cf').innerHTML=s;
+}
+
+function renderCapexChart(r0) {
+  const ct=r0.ct;if(ct<=0){$('chart-capex').innerHTML='';return;}
+  const items=[{n:'Lahan',v:r0.cl,c:'#1B4F72'},{n:'Aset',v:CNL,c:'#2E86C1'},{n:'Modal Kerja',v:r0.mk,c:'#5DADE2'}];
+  if(r0.bphtb>0)items.push({n:'BPHTB',v:r0.bphtb,c:'#85C1E9'});
+  const W=460,H=130,ml=5,bw=W-10,bh=24;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="font-family:Inter,system-ui,sans-serif">`;
+  s+=`<text x="${ml}" y="12" fill="var(--fg-mid)" font-size="9" font-weight="600">Total CAPEX: ${rpS(ct)}</text>`;
+  let bx=ml;
+  items.forEach(it=>{const w=Math.max(1,it.v/ct*bw);
+    s+=`<rect x="${bx}" y="18" width="${w}" height="${bh}" fill="${it.c}" rx="2"/>`;
+    if(w>30) s+=`<text x="${bx+w/2}" y="${18+bh/2+3}" text-anchor="middle" fill="#fff" font-size="7.5">${(it.v/ct*100).toFixed(0)}%</text>`;bx+=w;});
+  const nl=ct-r0.cl;
+  if(nl>0){const nlI=items.filter(i=>i.n!=='Lahan');
+    s+=`<text x="${ml}" y="${bh+38}" fill="var(--fg-mid)" font-size="9" font-weight="600">Non-Lahan: ${rpS(nl)}</text>`;bx=ml;
+    nlI.forEach(it=>{const w=Math.max(1,it.v/nl*bw);
+      s+=`<rect x="${bx}" y="${bh+44}" width="${w}" height="${bh}" fill="${it.c}" rx="2"/>`;
+      if(w>25) s+=`<text x="${bx+w/2}" y="${bh+44+bh/2+3}" text-anchor="middle" fill="#fff" font-size="7.5">${rpS(it.v)}</text>`;bx+=w;});}
+  const ly=bh*2+60;
+  items.forEach((it,i)=>{const lx=ml+i*110;
+    s+=`<rect x="${lx}" y="${ly}" width="8" height="8" rx="1.5" fill="${it.c}"/>`;
+    s+=`<text x="${lx+12}" y="${ly+7}" fill="var(--fg-muted)" font-size="8">${it.n}</text>`;});
+  s+='</svg>';$('chart-capex').innerHTML=s;
+}
+
+function renderRevOpexChart(p0, period) {
+  const W=460,H=240,ml=60,mr=10,mt=18,mb=25,pw=W-ml-mr,ph=H-mt-mb;
+  const rows=p0.rows;let yMax=0;rows.forEach(r=>yMax=Math.max(yMax,r.revY,r.opexY));yMax*=1.1;
+  const x=i=>ml+(i+0.5)/period*pw, y=v=>mt+(1-v/yMax)*ph;
+  const bw=Math.min(pw/period*0.35,16);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="font-family:Inter,system-ui,sans-serif">`;
+  for(let i=0;i<=4;i++){const v=yMax*i/4,yy=y(v);
+    s+=`<line x1="${ml}" y1="${yy}" x2="${W-mr}" y2="${yy}" stroke="var(--border)" stroke-width=".5"/>`;
+    s+=`<text x="${ml-5}" y="${yy+3}" text-anchor="end" fill="var(--fg-muted)" font-size="7.5">${rpS(v)}</text>`;}
+  rows.forEach((r,i)=>{const cx=x(i);
+    s+=`<rect x="${cx-bw}" y="${y(r.revY)}" width="${bw}" height="${y(0)-y(r.revY)}" fill="var(--ok)" opacity=".65" rx="1.5"/>`;
+    s+=`<rect x="${cx}" y="${y(r.opexY)}" width="${bw}" height="${y(0)-y(r.opexY)}" fill="var(--bad)" opacity=".65" rx="1.5"/>`;
+    if(period<=12||r.y%2===0||r.y===period) s+=`<text x="${cx}" y="${H-mb+12}" text-anchor="middle" fill="var(--fg-muted)" font-size="7">${r.y}</text>`;});
+  s+=`<line x1="${ml}" y1="${y(0)}" x2="${W-mr}" y2="${y(0)}" stroke="var(--border)" stroke-width="1"/>`;
+  s+=`<rect x="${ml+8}" y="${mt-8}" width="8" height="8" rx="1.5" fill="var(--ok)" opacity=".65"/>`;
+  s+=`<text x="${ml+20}" y="${mt-1}" fill="var(--fg-mid)" font-size="8">Revenue</text>`;
+  s+=`<rect x="${ml+75}" y="${mt-8}" width="8" height="8" rx="1.5" fill="var(--bad)" opacity=".65"/>`;
+  s+=`<text x="${ml+87}" y="${mt-1}" fill="var(--fg-mid)" font-size="8">OPEX</text>`;
+  s+='</svg>';$('chart-revopex').innerHTML=s;
+}
+
+function renderTornado(pohon, prod, hj, mkBulan, tax, disc, inflRev, inflCost, period) {
+  const ht=SCENARIOS[0].ht;
+  const npv=(po,pr,h,d,ir,ic)=>quickNPV(po,pr,h,ht,tax,mkBulan,d,ir,ic,period);
+  const base=npv(pohon,prod,hj,disc,inflRev,inflCost);
+  const tests=[
+    {name:'Produktivitas',lo:npv(pohon,prod*.8,hj,disc,inflRev,inflCost),hi:npv(pohon,prod*1.2,hj,disc,inflRev,inflCost)},
+    {name:'Harga Jual',lo:npv(pohon,prod,hj*.8,disc,inflRev,inflCost),hi:npv(pohon,prod,hj*1.2,disc,inflRev,inflCost)},
+    {name:'Jumlah Pohon',lo:npv(pohon*.8,prod,hj,disc,inflRev,inflCost),hi:npv(pohon*1.2,prod,hj,disc,inflRev,inflCost)},
+    {name:'Discount Rate',lo:npv(pohon,prod,hj,disc*1.2,inflRev,inflCost),hi:npv(pohon,prod,hj,disc*.8,inflRev,inflCost)},
+    {name:'Inflasi Revenue',lo:npv(pohon,prod,hj,disc,inflRev*.8,inflCost),hi:npv(pohon,prod,hj,disc,inflRev*1.2,inflCost)},
+    {name:'Inflasi Biaya',lo:npv(pohon,prod,hj,disc,inflRev,inflCost*1.2),hi:npv(pohon,prod,hj,disc,inflRev,inflCost*.8)},
+  ];
+  tests.forEach(t=>t.swing=Math.abs(t.hi-t.lo));
+  tests.sort((a,b)=>b.swing-a.swing);
+  const W=600,H=210,ml=105,mr=15,mt=20,mb=10;
+  const pw=W-ml-mr,rh=22,gap=5,n=tests.length;
+  let xMin=base,xMax=base;
+  tests.forEach(t=>{xMin=Math.min(xMin,t.lo,t.hi);xMax=Math.max(xMax,t.lo,t.hi);});
+  const pad=(xMax-xMin)*0.06||1e9;xMin-=pad;xMax+=pad;
+  const x=v=>ml+(v-xMin)/(xMax-xMin)*pw, bx=x(base);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="font-family:Inter,system-ui,sans-serif">`;
+  s+=`<line x1="${bx}" y1="${mt-5}" x2="${bx}" y2="${mt+n*(rh+gap)}" stroke="var(--fg-muted)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  s+=`<text x="${bx}" y="${mt-8}" text-anchor="middle" fill="var(--fg-mid)" font-size="8" font-weight="600">Base: ${rpS(base)}</text>`;
+  tests.forEach((t,i)=>{const cy=mt+i*(rh+gap)+rh/2;
+    s+=`<text x="${ml-5}" y="${cy+3}" text-anchor="end" fill="var(--fg)" font-size="9">${t.name}</text>`;
+    [t.lo,t.hi].forEach(val=>{const left=Math.min(x(val),bx),w=Math.abs(x(val)-bx);
+      s+=`<rect x="${left}" y="${cy-rh/2+3}" width="${w}" height="${rh-6}" fill="${val>=base?'var(--ok)':'var(--bad)'}" opacity=".55" rx="2"/>`;});
+    const mn=Math.min(t.lo,t.hi),mx=Math.max(t.lo,t.hi);
+    s+=`<text x="${x(mn)-3}" y="${cy+3}" text-anchor="end" fill="var(--fg-muted)" font-size="7">${rpS(mn)}</text>`;
+    s+=`<text x="${x(mx)+3}" y="${cy+3}" text-anchor="start" fill="var(--fg-muted)" font-size="7">${rpS(mx)}</text>`;});
+  const ly=mt+n*(rh+gap)+5;
+  s+=`<rect x="${ml}" y="${ly}" width="8" height="8" rx="1.5" fill="var(--bad)" opacity=".55"/>`;
+  s+=`<text x="${ml+12}" y="${ly+7}" fill="var(--fg-muted)" font-size="8">Penurunan -20%</text>`;
+  s+=`<rect x="${ml+110}" y="${ly}" width="8" height="8" rx="1.5" fill="var(--ok)" opacity=".55"/>`;
+  s+=`<text x="${ml+122}" y="${ly+7}" fill="var(--fg-muted)" font-size="8">Kenaikan +20%</text>`;
+  s+='</svg>';$('chart-tornado').innerHTML=s;
+}
+
+function update() {
+  const pohon = +$('s-pohon').value;
+  const prod = +$('s-prod').value;
+  const hj = +$('s-harga').value;
+  const mkBulan = +$('s-mk').value;
+  const disc = +$('s-disc').value / 100;
+  const inflRev = +$('s-infl-rev').value / 100;
+  const inflCost = +$('s-infl-cost').value / 100;
+  const period = +$('s-period').value;
+  const tax = {
+    bphtb: $('t-bphtb').checked,
+    pbb: $('t-pbb').checked,
+    pph: $('t-pph').checked,
+    pp55: $('t-pph').checked && $('t-pp55').checked,
+    p31e: $('t-pph').checked && $('t-31e').checked,
+    rv: $('t-rv').checked
+  };
+
+  const eGedung=+$('e-gedung').value*1e6,eMotor=+$('e-motor').value*1e6,ePeralatan=+$('e-peralatan').value*1e6,eMesin=+$('e-mesin').value*1e6,ePickup=+$('e-pickup').value*1e6;
+  CNL=eGedung+eMotor+ePeralatan+eMesin+ePickup;
+  DEPR_ASSETS=[[eGedung,20],[eMotor,5],[ePeralatan,5],[eMesin,8],[ePickup,8]];
+  SDM=(+$('e-manajer').value+ +$('e-kasir').value+ +$('e-perawat').value)*1e6;
+  PUPUK=+$('e-pupuk').value*1e6;GUD=+$('e-gudang').value*1e6;OVH=+$('e-overhead').value*1e6;
+  $('c-cnl').textContent=rpF(CNL)+' (sama semua skenario)';
+  $('o-sdm-total').textContent=rpF(SDM);
+
+  const customHt=+$('s-custom-ht').value;
+  SCENARIOS[4].ht=customHt;
+  SCENARIOS[4].total=rpS(customHt*M2);
+  $('v-custom-ht').textContent=num(customHt);
+  $('custom-total').textContent='Total lahan: '+rpS(customHt*M2)+' (80 ha)';
+  $('c-custom-price').textContent='Rp '+num(customHt)+'/m²';
+
+  $('v-pohon').textContent=num(pohon);$('v-prod').textContent=num(prod);
+  $('v-harga').textContent=num(hj);$('v-mk').textContent=mkBulan;
+  $('v-disc').textContent=$('s-disc').value;$('v-infl-rev').textContent=$('s-infl-rev').value;
+  $('v-infl-cost').textContent=$('s-infl-cost').value;$('v-period').textContent=period;
+
+  const results=SCENARIOS.map(s=>calc(s.ht,pohon,prod,hj,tax,mkBulan));
+  const r0=results[0];
+
+  for(let i=0;i<NS;i++) $('c-lahan-'+i).textContent=rpF(SCENARIOS[i].ht*M2);
+
+  const proj=SCENARIOS.map((s,i)=>{
+    const r=results[i];const cfs=[-r.ct];let cum=-r.ct;let pbYear=Infinity;const rows=[];
+    for(let y=1;y<=period;y++){
+      const revY=Math.round(r.rv*Math.pow(1+inflRev,y-1));
+      const opexY=Math.round(r.ot*Math.pow(1+inflCost,y-1));
+      const deprY=tax.pph?deprYear(y):0;
+      const pphY=calcPPhYear(revY,opexY,y,tax);
+      let ncfY=revY-opexY-pphY;
+      const isLast=y===period;const residual=(isLast&&tax.rv)?r.cl:0;ncfY+=residual;
+      cfs.push(ncfY);const prevCum=cum;cum+=ncfY;
+      if(pbYear===Infinity&&cum>=0&&prevCum<0) pbYear=y-1+Math.abs(prevCum)/ncfY;
+      rows.push({y,revY,opexY,deprY,pphY,ncfY,cum,residual});
+    }
+    const npv=cfs.reduce((sum,cf,t)=>sum+cf/Math.pow(1+disc,t),0);
+    const irr=calcIRR(cfs);return{cfs,pbYear,npv,irr,rows};
+  });
+
+  let tc='';
+  SCENARIOS.forEach((s,i)=>{const r=results[i];const pb=proj[i].pbYear;const cls=colorCls(pb);
+    tc+='<div class="sc'+(i===4?' custom':'')+'">';
+    tc+='<div class="sname">'+s.name+'</div>';
+    tc+='<div class="price">Rp '+num(s.ht)+'/m² · <strong>'+s.total+'</strong></div>';
+    tc+='<div class="big '+cls+'">'+pbTxt(pb)+'</div>';
+    tc+='<div class="row"><span>ROI</span><span>'+r.roi.toFixed(1)+'%</span></div>';
+    tc+='<div class="row"><span>Payback</span><span>'+pbTxt(pb)+' ('+(!isFinite(pb)?'∞':Math.round(pb*12)+' bln')+')</span></div>';
+    tc+='<div class="row"><span>Net CF/th</span><span>'+rpS(r.nc)+'</span></div>';
+    tc+='<div class="row"><span>Total CAPEX</span><span>'+rpS(r.ct)+'</span></div></div>';
+  });$('top-cards').innerHTML=tc;
+
+  $('c-mk-label').textContent='Modal Kerja ('+mkBulan+' bln OPEX)';
+  $('tr-bphtb').hidden=!tax.bphtb;
+  for(let i=0;i<NS;i++){
+    $('c-mk-'+i).textContent=rpF(results[i].mk);
+    if(tax.bphtb) $('c-bphtb-'+i).textContent=rpF(results[i].bphtb);
+    $('c-total-'+i).textContent=rpF(results[i].ct);
+    const pb=proj[i].pbYear;$('c-pb-'+i).textContent=pbTxt(pb);$('c-pb-'+i).className='num '+colorCls(pb);
+    $('c-roi-'+i).textContent=results[i].roi.toFixed(1)+'%';
+    $('c-roi-'+i).className='num '+(results[i].roi>8?'ok':results[i].roi>5?'warn':'bad');
+  }
+
+  $('tr-pbb').hidden=!tax.pbb;
+  $('o-panen').textContent=rpF(r0.bp);$('o-panen-n').textContent=num(pohon)+' × '+r0.fp.toFixed(1)+'× × Rp 10k';
+  $('o-logistik').textContent=rpF(r0.bl);$('o-sub').textContent=rpF(r0.os);
+  $('o-risk').textContent=rpF(r0.cr);if(tax.pbb) $('o-pbb').textContent=rpF(r0.pbb);
+  $('o-total').textContent=rpF(r0.ot);$('o-monthly').textContent=rpF(Math.round(r0.ot/12));
+
+  $('tr-pph').hidden=!tax.pph;$('tr-depr').hidden=!tax.pph;
+  $('r-cf-label').textContent=tax.pph?'Net Cashflow / Tahun (after tax)':'Net Cashflow / Tahun';
+  $('r-prod').textContent=num(r0.tp)+' butir ('+num(pohon)+' pohon × '+num(prod)+')';
+  $('r-rev').textContent=rpF(r0.rv)+'  ('+num(r0.tp)+' × Rp '+num(hj)+'/butir)';
+  $('r-opex').textContent='('+rpF(r0.ot)+')';
+  if(tax.pph){
+    $('r-depr').textContent='('+rpF(r0.depr)+')';
+    $('r-depr-label').innerHTML='Depresiasi Aset (non-cash, th-1) <span style="font-weight:400;font-size:.68rem;color:var(--fg-muted);font-style:normal;display:block">Th 1–5: '+rpS(deprYear(1))+' → th 6–8: '+rpS(deprYear(6))+' → th 9–20: '+rpS(deprYear(9))+'</span>';
+    if(r0.pphMode==='pp55'){
+      const suffix=tax.p31e?' → Pasal 31E dari th 5':' → 22% dari th 5';
+      $('r-pph-label').innerHTML='PPh Final 0,5% (PP 55/2022, th 1–4'+suffix+') <span style="font-weight:400;font-size:.68rem;color:var(--fg-muted);font-style:normal">Depresiasi tidak mengurangi PPh Final</span>';
+    } else if(r0.pphMode==='31e'){
+      const ts=Math.round(r0.depr*r0.pphRate);
+      $('r-pph-label').innerHTML='PPh Badan (Pasal 31E, efektif '+(r0.pphRate*100).toFixed(1)+'%) <span style="font-weight:400;font-size:.68rem;color:var(--fg-muted);font-style:normal">hemat '+rpS(ts)+'/th dari depresiasi</span>';
+    } else {
+      const ts=Math.round(r0.depr*0.22);
+      $('r-pph-label').innerHTML='PPh Badan (22%) <span style="font-weight:400;font-size:.68rem;color:var(--fg-muted);font-style:normal">hemat '+rpS(ts)+'/th dari depresiasi</span>';
+    }
+    $('r-pph').textContent='('+rpF(r0.pph)+')';
+  }
+  $('r-cf').textContent=rpF(r0.nc);$('r-cf').className='num '+(r0.nc>=0?'ok':'bad');$('r-cf').style.fontWeight='700';
+
+  for(let i=0;i<NS;i++){const r=results[i];
+    $('r-capex-'+i).textContent=rpS(r.ct);
+    $('r-roi-'+i).textContent=r.roi.toFixed(1)+'%';$('r-roi-'+i).className='num '+(r.roi>8?'ok':r.roi>5?'warn':'bad');
+    const pb=proj[i].pbYear;$('r-pb-'+i).textContent=pbTxt(pb);$('r-pb-'+i).className='num '+colorCls(pb);
+  }
+  $('r-pb-nl').textContent=pbTxt(r0.pbnl);
+
+  $('r-npv-label').textContent='(disc '+$('s-disc').value+'%, '+period+' th'+(tax.rv?', +sisa lahan':'')+')';
+  for(let i=0;i<NS;i++){
+    $('r-npv-'+i).textContent=rpS(proj[i].npv);$('r-npv-'+i).className='num '+(proj[i].npv>=0?'ok':'bad');
+    const irr=proj[i].irr;
+    if(isFinite(irr)&&irr>-0.3){$('r-irr-'+i).textContent=(irr*100).toFixed(1)+'%';$('r-irr-'+i).className='num '+(irr>disc?'ok':irr>disc*0.7?'warn':'bad');}
+    else{$('r-irr-'+i).textContent='—';$('r-irr-'+i).className='num bad';}
+  }
+
+  $('k-margin').textContent=rpS(r0.mpb);$('k-margin').style.color=r0.mpb>=0?'var(--ok)':'var(--bad)';
+  $('k-margin-ha').textContent=rpS(r0.mph);$('k-margin-ha').style.color=r0.mph>=0?'var(--ok)':'var(--bad)';
+  $('k-bep').textContent=isFinite(r0.bep)?r0.bep.toFixed(1)+' ha':'—';
+  $('k-prod-ha').textContent=num(r0.tp/LUAS)+' butir';
+  $('k-prod-ha').title=(pohon/LUAS).toFixed(1)+' pohon/ha × '+num(prod)+' butir/pohon/th';
+
+  $('proj-info').textContent='Cashflow kumulatif per skenario. Inflasi revenue '+$('s-infl-rev').value+'%/th, inflasi biaya '+$('s-infl-cost').value+'%/th, discount rate '+$('s-disc').value+'%, periode '+period+' tahun.'+(tax.rv?' Termasuk nilai sisa lahan di tahun terakhir.':'');
+
+  let ps='';
+  SCENARIOS.forEach((s,i)=>{const p=proj[i];const short=s.name==='Custom'?'Custom':s.name.split(' ').pop();
+    const irrTxt=isFinite(p.irr)&&p.irr>-0.3?(p.irr*100).toFixed(1)+'%':'—';
+    const bepTxt=p.pbYear<Infinity?'tahun ke-'+Math.ceil(p.pbYear):'belum dalam '+period+' th';
+    ps+='<div class="ps"'+(i===4?' style="border-style:dashed;border-color:var(--accent-soft)"':'')+'><div class="psl">'+short+'</div>';
+    ps+='<div class="psv" style="color:var(--'+(p.npv>=0?'ok':'bad')+')">'+rpS(p.npv)+'</div>';
+    ps+='<div class="pss" style="font-weight:600;margin-bottom:2px">NPV ('+$('s-disc').value+'%, '+period+' th)</div>';
+    ps+='<div class="pss">Return '+irrTxt+'/th · Modal kembali '+bepTxt+'</div></div>';
+  });
+  const posCount=proj.filter(p=>p.npv>=0).length;
+  const bestIRR=Math.max(...proj.map(p=>isFinite(p.irr)?p.irr:-1));
+  let conclusion;
+  if(posCount===NS) conclusion='Semua '+NS+' skenario menguntungkan dalam '+period+' tahun. Return tahunan tertinggi '+(bestIRR*100).toFixed(1)+'%.';
+  else if(posCount>0) conclusion=posCount+' dari '+NS+' skenario menguntungkan dalam '+period+' tahun. Semakin mahal harga lahan, semakin lama modal kembali.';
+  else conclusion='Belum ada skenario yang menguntungkan dalam '+period+' tahun. Coba perpanjang periode atau naikkan produktivitas.';
+  ps+='<div style="grid-column:1/-1;font-size:.78rem;color:var(--fg-mid);padding:8px 0 0;border-top:1px solid var(--border);margin-top:6px">'+conclusion+'</div>';
+  $('proj-summary').innerHTML=ps;
+
+  const p0=proj[0];
+  let ph='<thead><tr><th class="num">Tahun</th><th class="num">Revenue</th><th class="num">OPEX</th>';
+  if(tax.pph) ph+='<th class="num">Depr</th>';
+  ph+='<th class="num">Net CF</th>';
+  SCENARIOS.forEach(s=>ph+='<th class="num">'+(s.name==='Custom'?'Custom':s.name.split(' ').pop())+'</th>');
+  ph+='</tr></thead><tbody>';
+  ph+='<tr><td class="num" style="font-weight:600">0</td><td class="num">—</td><td class="num">—</td>';
+  if(tax.pph) ph+='<td class="num">—</td>';
+  ph+='<td class="num">—</td>';
+  SCENARIOS.forEach((s,i)=>ph+='<td class="r">'+rpS(-results[i].ct)+'</td>');ph+='</tr>';
+  for(let y=0;y<period;y++){const row0=p0.rows[y];
+    ph+='<tr><td class="num" style="font-weight:600">'+row0.y+'</td>';
+    ph+='<td class="num">'+rpS(row0.revY)+'</td><td class="num">('+rpS(row0.opexY)+')</td>';
+    if(tax.pph) ph+='<td class="num" style="color:var(--fg-muted)">'+rpS(row0.deprY)+'</td>';
+    const ncfBase=row0.ncfY-row0.residual;
+    ph+='<td class="num'+(ncfBase>=0?' ok':' bad')+'">'+rpS(ncfBase)+'</td>';
+    SCENARIOS.forEach((s,si)=>{const pr=proj[si].rows[y];const cls=pr.cum>=0?'g':'r';
+      const isBEP=(proj[si].pbYear>=pr.y-1&&proj[si].pbYear<pr.y+1&&pr.cum>=0&&(y===0||proj[si].rows[y-1].cum<0));
+      let cell=rpS(pr.cum);if(pr.residual>0)cell+='*';
+      ph+='<td class="'+cls+'"'+(isBEP?' style="font-weight:800;text-decoration:underline"':'')+'>'+cell+'</td>';});
+    ph+='</tr>';}
+  if(tax.rv) ph+='<tr><td colspan="'+(tax.pph?5:4)+'"></td><td colspan="'+NS+'" style="font-size:.68rem;color:var(--fg-muted);text-align:center;font-style:italic">* termasuk nilai sisa lahan</td></tr>';
+  ph+='</tbody>';$('projection').innerHTML=ph;
+
+  const prodCols=[100,120,140,160,180,200,220];
+  let m='<thead><tr><th class="num">Rp/m² ↓ · Butir/pohon/th →</th>';
+  prodCols.forEach(p=>m+='<th class="num">'+p+'</th>');m+='</tr></thead><tbody>';
+  SCENARIOS.forEach(s=>{m+='<tr><th class="num" style="font-weight:600;white-space:nowrap">'+num(s.ht)+' — '+(s.name==='Custom'?'Custom':s.name.split(' ').slice(-1))+'</th>';
+    prodCols.forEach(p=>{const sr=calc(s.ht,pohon,p,hj,tax,mkBulan);const v=sr.pb;
+      m+='<td class="'+(v<10?'g':v<15?'y':'r')+'">'+(isFinite(v)?v.toFixed(1):'∞')+'</td>';});m+='</tr>';});
+  m+='</tbody>';$('matrix').innerHTML=m;
+
+  renderCFChart(proj,period);
+  renderCapexChart(results[0]);
+  renderRevOpexChart(proj[0],period);
+  renderTornado(pohon,prod,hj,mkBulan,tax,disc,inflRev,inflCost,period);
+}
+
+['s-pohon','s-prod','s-harga','s-mk','s-disc','s-infl-rev','s-infl-cost','s-period','s-custom-ht'].forEach(id=>$(id).addEventListener('input',update));
+['t-bphtb','t-pbb','t-pph','t-pp55','t-31e','t-rv'].forEach(id=>$(id).addEventListener('change',update));
+['e-gedung','e-motor','e-peralatan','e-mesin','e-pickup','e-manajer','e-kasir','e-perawat','e-pupuk','e-gudang','e-overhead'].forEach(id=>$(id).addEventListener('input',update));
+
+function resetDefaults(){
+  const d={gedung:200,motor:30,peralatan:120,mesin:160,pickup:300,manajer:96,kasir:48,perawat:96,pupuk:120,gudang:30,overhead:24};
+  Object.entries(d).forEach(([k,v])=>$('e-'+k).value=v);update();
+}
+update();
+</script>
