@@ -873,7 +873,9 @@ function update() {
     ps+='<div class="ps"'+(i===4?' style="border-style:dashed;border-color:var(--accent-soft)"':'')+'><div class="psl">'+short+'</div>';
     ps+='<div class="psv" style="color:var(--'+(p.npv>=0?'ok':'bad')+')">'+rpS(p.npv)+'</div>';
     ps+='<div class="pss" style="font-weight:600;margin-bottom:2px">NPV ('+$('s-disc').value+'%, '+period+' th)</div>';
-    ps+='<div class="pss">Return '+irrTxt+'/th · Modal kembali '+bepTxt+'</div></div>';
+    ps+='<div class="pss">Return '+irrTxt+'/th · Modal kembali '+bepTxt+'</div>';
+    const cumCF=p.rows[p.rows.length-1].cum;
+    ps+='<div class="pss" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">Kumulatif Net CF: <strong style="color:var(--'+(cumCF>=0?'ok':'bad')+')">'+rpS(cumCF)+'</strong></div></div>';
   });
   const posCount=proj.filter(p=>p.npv>=0).length;
   const bestIRR=Math.max(...proj.map(p=>isFinite(p.irr)?p.irr:-1));
