@@ -9,7 +9,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 :root {
+  color-scheme: light;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   --bg: #F5F7FA; --surface: #FFFFFF; --surface-alt: #EBF0F5;
   --fg: #1A2332; --fg-mid: #4A5568; --fg-muted: #8896A6;
   --primary: #1B4F72; --primary-soft: #2E86C1;
