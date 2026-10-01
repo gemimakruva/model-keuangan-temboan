@@ -260,6 +260,33 @@ th.hl { color: var(--primary); }
       </label>
     </div>
   </div>
+  <div class="tax-section" id="sec-cicilan">
+    <div class="tax-title">Skema Pembayaran Lahan <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsional)</span></div>
+    <div class="tax-grid" style="margin-bottom:12px">
+      <label class="chk">
+        <input type="checkbox" id="t-cicilan">
+        <span>Aktifkan Cicilan Lahan<span class="chk-info">Jika dicentang, pembayaran lahan dibagi DP + cicilan. Jika tidak, seluruh harga lahan dibayar tunai di Tahun 0.</span></span>
+      </label>
+    </div>
+    <div class="controls" id="cicilan-controls" hidden>
+      <div class="ctrl">
+        <label>Down Payment (%) <span class="live" id="v-dp">40</span></label>
+        <input type="range" id="s-dp" min="20" max="80" step="5" value="40">
+        <span class="chk-info">Persentase harga lahan yang dibayar di muka (Tahun 0)</span>
+      </div>
+      <div class="ctrl">
+        <label>Jumlah Cicilan (tahun) <span class="live" id="v-cicilan-n">3</span></label>
+        <input type="range" id="s-cicilan-n" min="1" max="10" step="1" value="3">
+        <span class="chk-info">Sisa harga lahan dibayar merata selama N tahun</span>
+      </div>
+      <div class="ctrl">
+        <label>Grace Period (tahun) <span class="live" id="v-grace">0</span></label>
+        <input type="range" id="s-grace" min="0" max="3" step="1" value="0">
+        <span class="chk-info">Cicilan dimulai setelah grace period. 0 = mulai Tahun 1</span>
+      </div>
+    </div>
+    <div id="cicilan-summary" hidden style="margin-top:12px"></div>
+  </div>
   <div class="tax-section">
     <div class="tax-title">Asumsi Proyeksi</div>
     <div class="controls">
@@ -311,6 +338,14 @@ th.hl { color: var(--primary); }
         <td class="num" id="c-lahan-3">32.000.000.000</td>
         <td class="num" id="c-lahan-4">—</td>
       </tr>
+      <tr id="tr-dp" class="tax-row" hidden>
+        <td>&nbsp;&nbsp;└ Down Payment (<span id="dp-pct">40</span>%)</td>
+        <td class="num" id="c-dp-0">—</td><td class="num" id="c-dp-1">—</td><td class="num" id="c-dp-2">—</td><td class="num" id="c-dp-3">—</td><td class="num" id="c-dp-4">—</td>
+      </tr>
+      <tr id="tr-sisa" class="tax-row" hidden>
+        <td>&nbsp;&nbsp;└ Sisa Cicilan (<span id="sisa-n">3</span>× mulai th <span id="sisa-start">1</span>)</td>
+        <td class="num" id="c-sisa-0">—</td><td class="num" id="c-sisa-1">—</td><td class="num" id="c-sisa-2">—</td><td class="num" id="c-sisa-3">—</td><td class="num" id="c-sisa-4">—</td>
+      </tr>
       <tr>
         <td>Gedung Operasional</td>
         <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-gedung" type="number" value="200" min="0" step="10"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">kantor lapangan + gudang</span></td>
@@ -343,9 +378,17 @@ th.hl { color: var(--primary); }
         <td>BPHTB (5% nilai tanah)</td>
         <td class="num" id="c-bphtb-0">—</td><td class="num" id="c-bphtb-1">—</td><td class="num" id="c-bphtb-2">—</td><td class="num" id="c-bphtb-3">—</td><td class="num" id="c-bphtb-4">—</td>
       </tr>
+      <tr>
+        <td>Biaya Lain Akuisisi Lahan</td>
+        <td class="num" colspan="5" style="text-align:center"><input class="edit-num" id="e-biaya-lain" type="number" value="0" min="0" step="10"><span class="edit-unit">jt</span> <span style="color:var(--fg-muted);font-size:.72rem">pengukuran, penelusuran dokumen, notaris, dll</span></td>
+      </tr>
       <tr class="total">
         <td>TOTAL CAPEX</td>
         <td class="num" id="c-total-0">—</td><td class="num" id="c-total-1">—</td><td class="num" id="c-total-2">—</td><td class="num" id="c-total-3">—</td><td class="num" id="c-total-4">—</td>
+      </tr>
+      <tr id="tr-capex0" hidden>
+        <td>CAPEX Tahun 0 (initial cash)</td>
+        <td class="num" id="c-capex0-0">—</td><td class="num" id="c-capex0-1">—</td><td class="num" id="c-capex0-2">—</td><td class="num" id="c-capex0-3">—</td><td class="num" id="c-capex0-4">—</td>
       </tr>
       <tr><td>Payback Period</td>
         <td class="num" id="c-pb-0">—</td><td class="num" id="c-pb-1">—</td><td class="num" id="c-pb-2">—</td><td class="num" id="c-pb-3">—</td><td class="num" id="c-pb-4">—</td>
@@ -505,6 +548,8 @@ th.hl { color: var(--primary); }
   • <strong>PP 55/2022:</strong> PPh Final 0,5% dari omzet bruto. Max 4 tahun untuk PT baru, omzet ≤ Rp 4,8 M/th.<br>
   • <strong>Pasal 31E UU PPh:</strong> Diskon 50% tarif PPh untuk bagian PKP sebanding omzet ≤ Rp 4,8 M/th. Rumus: PPh = 11% × (4,8M/omzet × PKP) + 22% × sisanya.<br>
   • <strong>Pajak lainnya:</strong> BPHTB 5% atas (NPOP − Rp 80 jt NPOPTKP). PBB: 0,5% × NJKP; NJOP est. Rp 5.000/m².<br>
+  • <strong>Skema pembayaran lahan:</strong> DP + cicilan merata tanpa bunga. BPHTB dan biaya lain akuisisi tetap dibayar di Tahun 0. Cicilan mengurangi net cashflow di tahun pembayaran, mempengaruhi NPV/IRR.<br>
+  • <strong>Biaya lain akuisisi lahan:</strong> pengukuran, penelusuran dokumen, notaris, PPAT, dll. Default Rp 0 (disesuaikan pengguna).<br>
   • <strong>Belum termasuk:</strong> revenue hilirisasi (sabut/VCO/MCT), potensi wisata pantai, apresiasi nilai lahan.<br>
   <br>
   <strong>Sumber:</strong> DOC-007 (Laporan Strategis, Apr 2026) · DOC-008 (Prioritas Lokasi, Jul 2026) · DOC-009 (Industri Kelapa Sulut)
@@ -524,7 +569,7 @@ const rpF = n => !isFinite(n)?'—':Math.round(n).toLocaleString('id-ID');
 const num = n => Math.round(n).toLocaleString('id-ID');
 
 const LUAS=80, M2=LUAS*10000;
-let CNL=810e6, SDM=240e6, PUPUK=120e6, GUD=30e6, OVH=24e6;
+let CNL=810e6, SDM=240e6, PUPUK=120e6, GUD=30e6, OVH=24e6, BIAYA_LAIN=0;
 const NPOPTKP=80e6;
 const PBB_ANNUAL=Math.round(0.005*0.4*5000*M2);
 
@@ -556,7 +601,23 @@ function calcPPhYear(revY, opexY, y, tax) {
   return Math.round(taxableY * 0.22);
 }
 
-function calc(ht, pohon, prod, hj, tax, mkBulan) {
+function calcInstallments(cl, ps) {
+  if (!ps.enabled) return { dpAmount: cl, schedule: [], totalCicilan: 0 };
+  const dpAmount = Math.round(cl * ps.dp);
+  const sisaPokok = cl - dpAmount;
+  const cicilanPokok = Math.round(sisaPokok / ps.nCicilan);
+  const schedule = [];
+  let remaining = sisaPokok;
+  for (let i = 0; i < ps.nCicilan; i++) {
+    const year = 1 + ps.grace + i;
+    const pokok = (i === ps.nCicilan - 1) ? remaining : cicilanPokok;
+    remaining -= pokok;
+    schedule.push({ year, pokok });
+  }
+  return { dpAmount, schedule, totalCicilan: sisaPokok };
+}
+
+function calc(ht, pohon, prod, hj, tax, mkBulan, payScheme) {
   const cl = ht * M2;
   const fp = Math.max(2, 3 + (prod - 120) / 80);
   const tp = pohon * prod;
@@ -569,7 +630,9 @@ function calc(ht, pohon, prod, hj, tax, mkBulan) {
   const ot = os + cr + pbb;
   const mk = Math.round(ot * mkBulan / 12);
   const bphtb = tax.bphtb ? Math.round(0.05 * Math.max(0, cl - NPOPTKP)) : 0;
-  const ct = cl + CNL + mk + bphtb;
+  const inst = calcInstallments(cl, payScheme);
+  const ct = cl + CNL + BIAYA_LAIN + mk + bphtb;
+  const ctYear0 = inst.dpAmount + CNL + BIAYA_LAIN + mk + bphtb;
   const rv = tp * hj;
   const depr = tax.pph ? deprYear(1) : 0;
   const pph = calcPPhYear(rv, ot, 1, tax);
@@ -591,7 +654,7 @@ function calc(ht, pohon, prod, hj, tax, mkBulan) {
   const mph = rph - vph;
   const bep = mph > 0 ? SDM / mph : Infinity;
   const mpb = tp > 0 ? nc / tp : 0;
-  return { cl,ct,mk,bp,bl,os,cr,ot,tp,rv,nc,roi,pb,pbnl,mph,mpb,bep,fp,bphtb,pbb,pph,depr,taxable,pphRate,pphMode };
+  return { cl,ct,ctYear0,mk,bp,bl,os,cr,ot,tp,rv,nc,roi,pb,pbnl,mph,mpb,bep,fp,bphtb,pbb,pph,depr,taxable,pphRate,pphMode,inst };
 }
 
 function calcIRR(cfs) {
@@ -606,13 +669,15 @@ function calcIRR(cfs) {
   return (lo + hi) / 2;
 }
 
-function quickNPV(po, pr, h, ht, tax, mk, disc, ir, ic, per) {
-  const r = calc(ht, po, pr, h, tax, mk);
-  const cfs = [-r.ct];
+function quickNPV(po, pr, h, ht, tax, mk, disc, ir, ic, per, payScheme) {
+  const r = calc(ht, po, pr, h, tax, mk, payScheme);
+  const cfs = [-r.ctYear0];
   for (let y = 1; y <= per; y++) {
     const revY = Math.round(r.rv * Math.pow(1+ir, y-1));
     const opexY = Math.round(r.ot * Math.pow(1+ic, y-1));
     let ncfY = revY - opexY - calcPPhYear(revY, opexY, y, tax);
+    const instY = r.inst.schedule.find(s => s.year === y);
+    if (instY) ncfY -= instY.pokok;
     if (y === per && tax.rv) ncfY += r.cl;
     cfs.push(ncfY);
   }
@@ -651,7 +716,13 @@ function renderCFChart(proj, period) {
 
 function renderCapexChart(r0) {
   const ct=r0.ct;if(ct<=0){$('chart-capex').innerHTML='';return;}
-  const items=[{n:'Lahan',v:r0.cl,c:'#1B4F72'},{n:'Aset',v:CNL,c:'#2E86C1'},{n:'Modal Kerja',v:r0.mk,c:'#5DADE2'}];
+  let items;
+  if(r0.inst&&r0.inst.schedule.length>0){
+    items=[{n:'DP Lahan',v:r0.inst.dpAmount,c:'#1B4F72'},{n:'Cicilan',v:r0.inst.totalCicilan,c:'#2980B9'},{n:'Aset',v:CNL,c:'#2E86C1'},{n:'Modal Kerja',v:r0.mk,c:'#5DADE2'}];
+  } else {
+    items=[{n:'Lahan',v:r0.cl,c:'#1B4F72'},{n:'Aset',v:CNL,c:'#2E86C1'},{n:'Modal Kerja',v:r0.mk,c:'#5DADE2'}];
+  }
+  if(BIAYA_LAIN>0)items.push({n:'Biaya Lain',v:BIAYA_LAIN,c:'#7FB3D8'});
   if(r0.bphtb>0)items.push({n:'BPHTB',v:r0.bphtb,c:'#85C1E9'});
   const W=460,H=130,ml=5,bw=W-10,bh=24;
   let s=`<svg viewBox="0 0 ${W} ${H}" style="font-family:Inter,system-ui,sans-serif">`;
@@ -694,9 +765,9 @@ function renderRevOpexChart(p0, period) {
   s+='</svg>';$('chart-revopex').innerHTML=s;
 }
 
-function renderTornado(pohon, prod, hj, mkBulan, tax, disc, inflRev, inflCost, period) {
+function renderTornado(pohon, prod, hj, mkBulan, tax, disc, inflRev, inflCost, period, payScheme) {
   const ht=SCENARIOS[0].ht;
-  const npv=(po,pr,h,d,ir,ic)=>quickNPV(po,pr,h,ht,tax,mkBulan,d,ir,ic,period);
+  const npv=(po,pr,h,d,ir,ic)=>quickNPV(po,pr,h,ht,tax,mkBulan,d,ir,ic,period,payScheme);
   const base=npv(pohon,prod,hj,disc,inflRev,inflCost);
   const tests=[
     {name:'Produktivitas',lo:npv(pohon,prod*.8,hj,disc,inflRev,inflCost),hi:npv(pohon,prod*1.2,hj,disc,inflRev,inflCost)},
@@ -749,12 +820,21 @@ function update() {
     p31e: $('t-pph').checked && $('t-31e').checked,
     rv: $('t-rv').checked
   };
+  const payScheme = {
+    enabled: $('t-cicilan').checked,
+    dp: +$('s-dp').value / 100,
+    nCicilan: +$('s-cicilan-n').value,
+    grace: +$('s-grace').value
+  };
+  $('cicilan-controls').hidden = !payScheme.enabled;
+  $('cicilan-summary').hidden = !payScheme.enabled;
 
   const eGedung=+$('e-gedung').value*1e6,eMotor=+$('e-motor').value*1e6,ePeralatan=+$('e-peralatan').value*1e6,eMesin=+$('e-mesin').value*1e6,ePickup=+$('e-pickup').value*1e6;
   CNL=eGedung+eMotor+ePeralatan+eMesin+ePickup;
   DEPR_ASSETS=[[eGedung,20],[eMotor,5],[ePeralatan,5],[eMesin,8],[ePickup,8]];
   SDM=(+$('e-manajer').value+ +$('e-kasir').value+ +$('e-perawat').value)*1e6;
   PUPUK=+$('e-pupuk').value*1e6;GUD=+$('e-gudang').value*1e6;OVH=+$('e-overhead').value*1e6;
+  BIAYA_LAIN=+$('e-biaya-lain').value*1e6;
   $('c-cnl').textContent=rpF(CNL)+' (sama semua skenario)';
   $('o-sdm-total').textContent=rpF(SDM);
 
@@ -769,24 +849,29 @@ function update() {
   $('v-harga').textContent=num(hj);$('v-mk').textContent=mkBulan;
   $('v-disc').textContent=$('s-disc').value;$('v-infl-rev').textContent=$('s-infl-rev').value;
   $('v-infl-cost').textContent=$('s-infl-cost').value;$('v-period').textContent=period;
+  $('v-dp').textContent=$('s-dp').value;$('v-cicilan-n').textContent=$('s-cicilan-n').value;
+  $('v-grace').textContent=$('s-grace').value;
 
-  const results=SCENARIOS.map(s=>calc(s.ht,pohon,prod,hj,tax,mkBulan));
+  const results=SCENARIOS.map(s=>calc(s.ht,pohon,prod,hj,tax,mkBulan,payScheme));
   const r0=results[0];
 
   for(let i=0;i<NS;i++) $('c-lahan-'+i).textContent=rpF(SCENARIOS[i].ht*M2);
 
   const proj=SCENARIOS.map((s,i)=>{
-    const r=results[i];const cfs=[-r.ct];let cum=-r.ct;let pbYear=Infinity;const rows=[];
+    const r=results[i];const cfs=[-r.ctYear0];let cum=-r.ctYear0;let pbYear=Infinity;const rows=[];
     for(let y=1;y<=period;y++){
       const revY=Math.round(r.rv*Math.pow(1+inflRev,y-1));
       const opexY=Math.round(r.ot*Math.pow(1+inflCost,y-1));
       const deprY=tax.pph?deprYear(y):0;
       const pphY=calcPPhYear(revY,opexY,y,tax);
       let ncfY=revY-opexY-pphY;
+      const instY=r.inst.schedule.find(s=>s.year===y);
+      const cicilanY=instY?instY.pokok:0;
+      ncfY-=cicilanY;
       const isLast=y===period;const residual=(isLast&&tax.rv)?r.cl:0;ncfY+=residual;
       cfs.push(ncfY);const prevCum=cum;cum+=ncfY;
       if(pbYear===Infinity&&cum>=0&&prevCum<0) pbYear=y-1+Math.abs(prevCum)/ncfY;
-      rows.push({y,revY,opexY,deprY,pphY,ncfY,cum,residual});
+      rows.push({y,revY,opexY,deprY,pphY,ncfY,cum,residual,cicilanY});
     }
     const npv=cfs.reduce((sum,cf,t)=>sum+cf/Math.pow(1+disc,t),0);
     const irr=calcIRR(cfs);return{cfs,pbYear,npv,irr,rows};
@@ -801,14 +886,29 @@ function update() {
     tc+='<div class="row"><span>ROI</span><span>'+r.roi.toFixed(1)+'%</span></div>';
     tc+='<div class="row"><span>Payback</span><span>'+pbTxt(pb)+' ('+(!isFinite(pb)?'∞':Math.round(pb*12)+' bln')+')</span></div>';
     tc+='<div class="row"><span>Net CF/th</span><span>'+rpS(r.nc)+'</span></div>';
-    tc+='<div class="row"><span>Total CAPEX</span><span>'+rpS(r.ct)+'</span></div></div>';
+    tc+='<div class="row"><span>Total CAPEX</span><span>'+rpS(r.ct)+'</span></div>';
+    if(payScheme.enabled) tc+='<div class="row"><span>Cash Awal</span><span>'+rpS(r.ctYear0)+'</span></div>';
+    tc+='</div>';
   });$('top-cards').innerHTML=tc;
 
   $('c-mk-label').textContent='Modal Kerja ('+mkBulan+' bln OPEX)';
   $('tr-bphtb').hidden=!tax.bphtb;
+  $('tr-dp').hidden=!payScheme.enabled;
+  $('tr-sisa').hidden=!payScheme.enabled;
+  $('tr-capex0').hidden=!payScheme.enabled;
+  if(payScheme.enabled){
+    $('dp-pct').textContent=Math.round(payScheme.dp*100);
+    $('sisa-n').textContent=payScheme.nCicilan;
+    $('sisa-start').textContent=1+payScheme.grace;
+  }
   for(let i=0;i<NS;i++){
     $('c-mk-'+i).textContent=rpF(results[i].mk);
     if(tax.bphtb) $('c-bphtb-'+i).textContent=rpF(results[i].bphtb);
+    if(payScheme.enabled){
+      $('c-dp-'+i).textContent=rpF(results[i].inst.dpAmount);
+      $('c-sisa-'+i).textContent=rpF(results[i].inst.totalCicilan);
+      $('c-capex0-'+i).textContent=rpF(results[i].ctYear0);
+    }
     $('c-total-'+i).textContent=rpF(results[i].ct);
     const pb=proj[i].pbYear;$('c-pb-'+i).textContent=pbTxt(pb);$('c-pb-'+i).className='num '+colorCls(pb);
     $('c-roi-'+i).textContent=results[i].roi.toFixed(1)+'%';
@@ -864,7 +964,21 @@ function update() {
   $('k-prod-ha').textContent=num(r0.tp/LUAS)+' butir';
   $('k-prod-ha').title=(pohon/LUAS).toFixed(1)+' pohon/ha × '+num(prod)+' butir/pohon/th';
 
-  $('proj-info').textContent='Cashflow kumulatif per skenario. Inflasi revenue '+$('s-infl-rev').value+'%/th, inflasi biaya '+$('s-infl-cost').value+'%/th, discount rate '+$('s-disc').value+'%, periode '+period+' tahun.'+(tax.rv?' Termasuk nilai sisa lahan di tahun terakhir.':'');
+  $('proj-info').textContent='Cashflow kumulatif per skenario. Inflasi revenue '+$('s-infl-rev').value+'%/th, inflasi biaya '+$('s-infl-cost').value+'%/th, discount rate '+$('s-disc').value+'%, periode '+period+' tahun.'+(tax.rv?' Termasuk nilai sisa lahan di tahun terakhir.':'')+(payScheme.enabled?' DP '+Math.round(payScheme.dp*100)+'% + '+payScheme.nCicilan+'× cicilan.':'');
+
+  if(payScheme.enabled){
+    let cs='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;font-size:.78rem">';
+    SCENARIOS.forEach((s,i)=>{const r=results[i];const short=s.name==='Custom'?'Custom':s.name.split(' ').pop();
+      cs+='<div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:6px;padding:10px 12px;text-align:center'+(i===4?';border-style:dashed;border-color:var(--accent-soft)':'')+'">';
+      cs+='<div style="font-size:.68rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700">'+short+'</div>';
+      cs+='<div style="font-weight:700;margin-top:2px">DP: '+rpS(r.inst.dpAmount)+'</div>';
+      cs+='<div style="color:var(--fg-mid);font-size:.72rem;margin-top:2px">Cicilan: '+rpS(Math.round(r.inst.totalCicilan/payScheme.nCicilan))+'/th</div>';
+      cs+='<div style="color:var(--fg-muted);font-size:.68rem;margin-top:2px">Th '+(1+payScheme.grace)+'–'+(payScheme.grace+payScheme.nCicilan)+'</div>';
+      cs+='</div>';
+    });
+    cs+='</div>';
+    $('cicilan-summary').innerHTML=cs;
+  }
 
   let ps='';
   SCENARIOS.forEach((s,i)=>{const p=proj[i];const short=s.name==='Custom'?'Custom':s.name.split(' ').pop();
@@ -889,17 +1003,20 @@ function update() {
   const p0=proj[0];
   let ph='<thead><tr><th class="num">Tahun</th><th class="num">Revenue</th><th class="num">OPEX</th>';
   if(tax.pph) ph+='<th class="num">Depr</th>';
+  if(payScheme.enabled) ph+='<th class="num">Cicilan</th>';
   ph+='<th class="num">Net CF</th>';
   SCENARIOS.forEach(s=>ph+='<th class="num">'+(s.name==='Custom'?'Custom':s.name.split(' ').pop())+'</th>');
   ph+='</tr></thead><tbody>';
   ph+='<tr><td class="num" style="font-weight:600">0</td><td class="num">—</td><td class="num">—</td>';
   if(tax.pph) ph+='<td class="num">—</td>';
+  if(payScheme.enabled) ph+='<td class="num">—</td>';
   ph+='<td class="num">—</td>';
   SCENARIOS.forEach((s,i)=>ph+='<td class="r">'+rpS(-results[i].ct)+'</td>');ph+='</tr>';
   for(let y=0;y<period;y++){const row0=p0.rows[y];
     ph+='<tr><td class="num" style="font-weight:600">'+row0.y+'</td>';
     ph+='<td class="num">'+rpS(row0.revY)+'</td><td class="num">('+rpS(row0.opexY)+')</td>';
     if(tax.pph) ph+='<td class="num" style="color:var(--fg-muted)">'+rpS(row0.deprY)+'</td>';
+    if(payScheme.enabled) ph+='<td class="num"'+(row0.cicilanY>0?' style="color:var(--bad)"':'')+'>'+( row0.cicilanY>0?'('+rpS(row0.cicilanY)+')':'—')+'</td>';
     const ncfBase=row0.ncfY-row0.residual;
     ph+='<td class="num'+(ncfBase>=0?' ok':' bad')+'">'+rpS(ncfBase)+'</td>';
     SCENARIOS.forEach((s,si)=>{const pr=proj[si].rows[y];const cls=pr.cum>=0?'g':'r';
@@ -914,19 +1031,19 @@ function update() {
   let m='<thead><tr><th class="num">Rp/m² ↓ · Butir/pohon/th →</th>';
   prodCols.forEach(p=>m+='<th class="num">'+p+'</th>');m+='</tr></thead><tbody>';
   SCENARIOS.forEach(s=>{m+='<tr><th class="num" style="font-weight:600;white-space:nowrap">'+num(s.ht)+' — '+(s.name==='Custom'?'Custom':s.name.split(' ').slice(-1))+'</th>';
-    prodCols.forEach(p=>{const sr=calc(s.ht,pohon,p,hj,tax,mkBulan);const v=sr.pb;
+    prodCols.forEach(p=>{const sr=calc(s.ht,pohon,p,hj,tax,mkBulan,payScheme);const v=sr.pb;
       m+='<td class="'+(v<10?'g':v<15?'y':'r')+'">'+(isFinite(v)?v.toFixed(1):'∞')+'</td>';});m+='</tr>';});
   m+='</tbody>';$('matrix').innerHTML=m;
 
   renderCFChart(proj,period);
   renderCapexChart(results[0]);
   renderRevOpexChart(proj[0],period);
-  renderTornado(pohon,prod,hj,mkBulan,tax,disc,inflRev,inflCost,period);
+  renderTornado(pohon,prod,hj,mkBulan,tax,disc,inflRev,inflCost,period,payScheme);
 }
 
-['s-pohon','s-prod','s-harga','s-mk','s-disc','s-infl-rev','s-infl-cost','s-period','s-custom-ht'].forEach(id=>$(id).addEventListener('input',update));
-['t-bphtb','t-pbb','t-pph','t-pp55','t-31e','t-rv'].forEach(id=>$(id).addEventListener('change',update));
-['e-gedung','e-motor','e-peralatan','e-mesin','e-pickup','e-manajer','e-kasir','e-perawat','e-pupuk','e-gudang','e-overhead'].forEach(id=>$(id).addEventListener('input',update));
+['s-pohon','s-prod','s-harga','s-mk','s-disc','s-infl-rev','s-infl-cost','s-period','s-custom-ht','s-dp','s-cicilan-n','s-grace'].forEach(id=>$(id).addEventListener('input',update));
+['t-bphtb','t-pbb','t-pph','t-pp55','t-31e','t-rv','t-cicilan'].forEach(id=>$(id).addEventListener('change',update));
+['e-gedung','e-motor','e-peralatan','e-mesin','e-pickup','e-manajer','e-kasir','e-perawat','e-pupuk','e-gudang','e-overhead','e-biaya-lain'].forEach(id=>$(id).addEventListener('input',update));
 
 function resetDefaults(){
   const d={gedung:200,motor:30,peralatan:120,mesin:160,pickup:300,manajer:96,kasir:48,perawat:96,pupuk:120,gudang:30,overhead:24};
