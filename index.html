@@ -732,7 +732,7 @@ function renderCapexChart(r0) {
     s+=`<rect x="${bx}" y="18" width="${w}" height="${bh}" fill="${it.c}" rx="2"/>`;
     if(w>30) s+=`<text x="${bx+w/2}" y="${18+bh/2+3}" text-anchor="middle" fill="#fff" font-size="7.5">${(it.v/ct*100).toFixed(0)}%</text>`;bx+=w;});
   const nl=ct-r0.cl;
-  if(nl>0){const nlI=items.filter(i=>i.n!=='Lahan');
+  if(nl>0){const nlI=items.filter(i=>i.n!=='Lahan'&&i.n!=='DP Lahan'&&i.n!=='Cicilan');
     s+=`<text x="${ml}" y="${bh+38}" fill="var(--fg-mid)" font-size="9" font-weight="600">Non-Lahan: ${rpS(nl)}</text>`;bx=ml;
     nlI.forEach(it=>{const w=Math.max(1,it.v/nl*bw);
       s+=`<rect x="${bx}" y="${bh+44}" width="${w}" height="${bh}" fill="${it.c}" rx="2"/>`;
@@ -1014,7 +1014,7 @@ function update() {
   if(tax.pph) ph+='<td class="num">—</td>';
   if(payScheme.enabled) ph+='<td class="num">—</td>';
   ph+='<td class="num">—</td>';
-  SCENARIOS.forEach((s,i)=>ph+='<td class="r">'+rpS(-results[i].ct)+'</td>');ph+='</tr>';
+  SCENARIOS.forEach((s,i)=>ph+='<td class="r">'+rpS(proj[i].cfs[0])+'</td>');ph+='</tr>';
   for(let y=0;y<period;y++){const row0=p0.rows[y];
     ph+='<tr><td class="num" style="font-weight:600">'+row0.y+'</td>';
     ph+='<td class="num">'+rpS(row0.revY)+'</td><td class="num">('+rpS(row0.opexY)+')</td>';
@@ -1027,7 +1027,7 @@ function update() {
       let cell=rpS(pr.cum);if(pr.residual>0)cell+='*';
       ph+='<td class="'+cls+'"'+(isBEP?' style="font-weight:800;text-decoration:underline"':'')+'>'+cell+'</td>';});
     ph+='</tr>';}
-  if(tax.rv) ph+='<tr><td colspan="'+(tax.pph?5:4)+'"></td><td colspan="'+NS+'" style="font-size:.68rem;color:var(--fg-muted);text-align:center;font-style:italic">* termasuk nilai sisa lahan</td></tr>';
+  if(tax.rv) ph+='<tr><td colspan="'+(4+(tax.pph?1:0)+(payScheme.enabled?1:0))+'"></td><td colspan="'+NS+'" style="font-size:.68rem;color:var(--fg-muted);text-align:center;font-style:italic">* termasuk nilai sisa lahan</td></tr>';
   ph+='</tbody>';$('projection').innerHTML=ph;
 
   const prodCols=[100,120,140,160,180,200,220];
@@ -1049,7 +1049,7 @@ function update() {
 ['e-gedung','e-motor','e-peralatan','e-mesin','e-pickup','e-manajer','e-kasir','e-perawat','e-pupuk','e-gudang','e-overhead','e-biaya-lain'].forEach(id=>$(id).addEventListener('input',update));
 
 function resetDefaults(){
-  const d={gedung:200,motor:30,peralatan:120,mesin:160,pickup:300,manajer:96,kasir:48,perawat:96,pupuk:120,gudang:30,overhead:24};
+  const d={gedung:200,motor:30,peralatan:120,mesin:160,pickup:300,manajer:96,kasir:48,perawat:96,pupuk:120,gudang:30,overhead:24,'biaya-lain':0};
   Object.entries(d).forEach(([k,v])=>$('e-'+k).value=v);update();
 }
 update();
